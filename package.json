@@ -1,13 +1,18 @@
 {
   "name": "office-scan",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Batch scan your documents to jpeg files using the command line.",
   "bin": "bin/office-scan",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": "https://github.com/der-On/office-scan.git",
-  "bugs": "https://github.com/der-On/office-scan/issues",
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/der-On/office-scan.git"
+  },
+  "bugs": {
+      "url": "https://github.com/der-On/office-scan/issues"
+  },
   "homepage": "https://github.com/der-On/office-scan",
   "author": "Ondrej Brinkel",
   "license": "GPL",
