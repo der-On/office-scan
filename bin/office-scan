@@ -1,0 +1,157 @@
+#!/usr/bin/env node
+
+var argv = require('yargs').argv;
+var exec = require('child_process').exec;
+var path = require('path');
+var fs = require('fs');
+var devices;
+
+function help()
+{
+  console.log(fs.readFileSync(path.join(__dirname, '..', 'help.txt'), {encoding:'utf8'}));
+  process.exit();
+}
+
+if (argv.help) {
+  help();
+}
+if (!argv.l && !argv.o) {
+  help();
+}
+
+process.stdin.resume();
+process.stdin.setEncoding('utf8');
+
+var filename = argv.o;
+var pages = argv.n || 1;
+var pagesScanned = 0;
+var paperType = argv.p || argv.paper || "white";
+var color = argv.c || argv.color || false;
+var dpi = argv.dpi || 150;
+var device = (typeof argv.d === 'number') ? argv.d : (typeof argv.device === 'number') ? argv.device : 1;
+var listDevices = argv.l || argv['list-devices'] || false;
+
+exec('scanimage -f %d%n', onDevices);
+
+function onDevices(error, stdout, stderror)
+{
+  if (error) {
+    console.error(error);
+    process.exit();
+  }
+
+  if (stderror) {
+    console.error(stderror);
+    process.exit();
+  }
+
+  devices = stdout.split('\n');
+
+  if (listDevices) {
+    console.log('DEVICES:\n');
+    devices.forEach(function(device, i) {
+      if(device.length > 0) console.log(i + ': ' + device);
+    });
+    console.log('');
+
+    process.exit();
+  }
+  else {
+    if (pages > 1) {
+      scanNextImage();
+    }
+    else {
+      scanImage(filename, onScanned);
+    }
+  }
+}
+
+function scanNextImage()
+{
+  if (pagesScanned < pages) {
+    console.log((pagesScanned + 1) + '/' + pages + ': press RETURN to continue with next page');
+
+    process.stdin.once('data', function(chunk) {
+      scanImage(filename + '_' + (pagesScanned + 1), function() {
+        pagesScanned++;
+        scanNextImage();
+      });
+    });
+  }
+  else {
+    onScanned();
+  }
+}
+
+function scanImage(filename, cb)
+{
+  console.log('scanning to ' + filename + '.tif');
+  exec('scanimage --mode=' + (color ? 'Color':'Gray') + ' --resolution=' + dpi + ' --format=tiff --device=' + devices[device] + ' > "' + path.join(process.cwd(), filename + '.tif') + '"',
+  function(error, stdout, stderror) {
+    if (error) {
+      console.error(error);
+      process.exit();
+    }
+
+    if (stderror) {
+      console.error(stderror);
+      process.exit();
+    }
+    console.log('scanning done');
+    cb();
+  });
+}
+
+function onScanned(error, stdout, stderror)
+{
+  if (error) {
+    console.error(error);
+    process.exit();
+  }
+
+  if (stderror) {
+    console.error(stderror);
+    process.exit();
+  }
+
+  console.log('all scanning done');
+  console.log('converting to jpeg ...');
+  var levels = '20%,80%';
+
+  if (paperType === 'dark') levels = '20%,70%';
+
+  exec('mogrify -level ' + levels + ' -format jpg ' + filename + ((pages > 1) ? '_*.tif' : '.tif'), onConverted);
+}
+
+function onConverted(error, stdout, stderror)
+{
+  if (error) {
+    console.error(error);
+    process.exit();
+  }
+
+  if (stderror) {
+    console.error(stderror);
+    process.exit();
+  }
+
+  console.log('removing tif files ...');
+  exec('rm ' + filename + ((pages > 1) ? '_*.tif' : '.tif'), onRemoved);
+
+}
+
+function onRemoved(error, stdout, stderror)
+{
+  if (error) {
+    console.error(error);
+    process.exit();
+  }
+
+  if (stderror) {
+    console.error(stderror);
+    process.exit();
+  }
+
+  console.log('done');
+  process.exit();
+}

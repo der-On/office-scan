@@ -1,0 +1,14 @@
+{
+  "name": "office-scan",
+  "version": "0.0.1",
+  "description": "Batch scan your documents to jpeg files using the command line.",
+  "bin": "bin/office-scan",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ondrej Brinkel",
+  "license": "GPL",
+  "dependencies": {
+    "yargs": "~1.1.3"
+  }
+}
