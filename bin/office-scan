@@ -27,7 +27,7 @@ var pages = argv.n || 1;
 var pagesScanned = 0;
 var paperType = argv.p || argv.paper || "white";
 var color = argv.c || argv.color || false;
-var dpi = argv.dpi || 150;
+var dpi = argv.dpi || 300;
 var device = (typeof argv.d === 'number') ? argv.d : (typeof argv.device === 'number') ? argv.device : 1;
 var listDevices = argv.l || argv['list-devices'] || false;
 
