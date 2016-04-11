@@ -6,6 +6,13 @@ var path = require('path');
 var fs = require('fs');
 var devices;
 
+function handleError(error) {
+  if (error) {
+    console.error(error);
+    process.exit(1);
+  }
+}
+
 function help()
 {
   console.log(fs.readFileSync(path.join(__dirname, '..', 'help.txt'), {encoding:'utf8'}));
@@ -30,20 +37,13 @@ var color = argv.c || argv.color || false;
 var dpi = argv.dpi || 300;
 var device = (typeof argv.d === 'number') ? argv.d : (typeof argv.device === 'number') ? argv.device : 1;
 var listDevices = argv.l || argv['list-devices'] || false;
+var pdf = argv.pdf || false;
 
 exec('scanimage -f %d%n', onDevices);
 
 function onDevices(error, stdout, stderror)
 {
-  if (error) {
-    console.error(error);
-    process.exit();
-  }
-
-  if (stderror) {
-    console.error(stderror);
-    process.exit();
-  }
+  [error, stderror].map(handleError);
 
   devices = stdout.split('\n');
 
@@ -88,15 +88,8 @@ function scanImage(filename, cb)
   console.log('scanning to ' + filename + '.tif');
   exec('scanimage --mode=' + (color ? 'Color':'Gray') + ' --resolution=' + dpi + ' --format=tiff --device=' + devices[device] + ' > "' + path.join(process.cwd(), filename + '.tif') + '"',
   function(error, stdout, stderror) {
-    if (error) {
-      console.error(error);
-      process.exit();
-    }
+    [error, stderror].map(handleError);
 
-    if (stderror) {
-      console.error(stderror);
-      process.exit();
-    }
     console.log('scanning done');
     cb();
   });
@@ -104,15 +97,7 @@ function scanImage(filename, cb)
 
 function onScanned(error, stdout, stderror)
 {
-  if (error) {
-    console.error(error);
-    process.exit();
-  }
-
-  if (stderror) {
-    console.error(stderror);
-    process.exit();
-  }
+  [error, stderror].map(handleError);
 
   console.log('all scanning done');
   console.log('converting to jpeg ...');
@@ -125,32 +110,40 @@ function onScanned(error, stdout, stderror)
 
 function onConverted(error, stdout, stderror)
 {
-  if (error) {
-    console.error(error);
-    process.exit();
-  }
-
-  if (stderror) {
-    console.error(stderror);
-    process.exit();
-  }
+  [error, stderror].map(handleError);
 
   console.log('removing tif files ...');
-  exec('rm ' + filename + ((pages > 1) ? '_*.tif' : '.tif'), onRemoved);
-
+  exec('rm ' + filename + ((pages > 1) ? '_*.tif' : '.tif'), onTiffsRemoved);
 }
 
-function onRemoved(error, stdout, stderror)
+function onTiffsRemoved(error, stdout, stderror)
 {
-  if (error) {
-    console.error(error);
-    process.exit();
-  }
+  [error, stderror].map(handleError);
 
-  if (stderror) {
-    console.error(stderror);
-    process.exit();
+  if (pdf) {
+    convertToPdf();
+  } else {
+    onDone();
   }
+}
+
+function convertToPdf()
+{
+  console.log('converting to pdf ...');
+  exec('convert ' + filename + ((pages > 1) ? '_*.jpg' : '.jpg') + ' ' + filename + '.pdf', onConvertedToPdf);
+}
+
+function onConvertedToPdf(error, stdout, stderror)
+{
+  [error, stderror].map(handleError);
+
+  console.log('removing jpeg files ...');
+  exec('rm ' + filename + ((pages > 1) ? '_*.jpg' : '.jpg'), onDone);
+}
+
+function onDone(error, stdout, stderror)
+{
+  [error, stderror].map(handleError);
 
   console.log('done');
   process.exit();

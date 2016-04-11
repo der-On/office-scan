@@ -8,3 +8,4 @@ OPTIONS:
   --dpi=dots per inch         (default = 150)
   -d --device=device to use   (default = 1) Index of the device to use. Display list of devices using -l
   -l --list-devices           Lists all attached devices
+  --pdf                       Convert to pdf
