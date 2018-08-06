@@ -1,6 +1,6 @@
 {
   "name": "office-scan",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Batch scan your documents to jpeg files using the command line.",
   "bin": "bin/office-scan",
   "scripts": {

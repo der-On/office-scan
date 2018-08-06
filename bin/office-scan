@@ -38,12 +38,22 @@ var dpi = argv.dpi || 300;
 var device = (typeof argv.d === 'number') ? argv.d : (typeof argv.device === 'number') ? argv.device : 1;
 var listDevices = argv.l || argv['list-devices'] || false;
 var pdf = argv.pdf || false;
+var noscan = argv.noscan || false;
 
 exec('scanimage -f %d%n', onDevices);
 
 function onDevices(error, stdout, stderror)
 {
   [error, stderror].map(handleError);
+
+  if (noscan) {
+    if (pdf) {
+      convertToPdf();
+    } else {
+      onDone();
+    }
+    return;
+  }
 
   devices = stdout.split('\n');
 
