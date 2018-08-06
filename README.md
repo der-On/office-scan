@@ -27,4 +27,4 @@ Batch scan your documents to jpeg files using the command line.
 	  -d --device=device to use   (default = 1) Index of the device to use. Display list of devices using -l
 	  -l --list-devices           Lists all attached devices
 	  --pdf                       Convert to pdf
-	  --noscan Do not scan (use to compile a PDF of previously scanned images)
+	  --noscan                    Do not scan (use to compile a PDF of previously scanned images)
