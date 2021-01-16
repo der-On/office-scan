@@ -35,7 +35,7 @@ var pagesScanned = 0;
 var paperType = argv.p || argv.paper || "white";
 var color = argv.c || argv.color || false;
 var dpi = argv.dpi || 300;
-var device = (typeof argv.d === 'number') ? argv.d : (typeof argv.device === 'number') ? argv.device : 1;
+var device = argv.d || argv.device || 0;
 var listDevices = argv.l || argv['list-devices'] || false;
 var pdf = argv.pdf || false;
 var noscan = argv.noscan || false;
@@ -47,6 +47,8 @@ function onDevices(error, stdout, stderror)
   [error, stderror].map(handleError);
 
   if (noscan) {
+    pagesScanned = pages;
+
     if (pdf) {
       convertToPdf();
     } else {
@@ -67,10 +69,11 @@ function onDevices(error, stdout, stderror)
     process.exit();
   }
   else {
-    if (pages > 1) {
+    if (pages === '?' || pages > 1) {
       scanNextImage();
     }
     else {
+      pagesScanned = 1;
       scanImage(filename, onScanned);
     }
   }
@@ -78,14 +81,18 @@ function onDevices(error, stdout, stderror)
 
 function scanNextImage()
 {
-  if (pagesScanned < pages) {
-    console.log((pagesScanned + 1) + '/' + pages + ': press RETURN to continue with next page');
+  if (pages === '?' || pagesScanned < pages) {
+    console.log((pagesScanned + 1) + '/' + pages + ': press RETURN to continue with next page. Enter "n" to stop scanning.');
 
     process.stdin.once('data', function(chunk) {
-      scanImage(filename + '_' + (pagesScanned + 1), function() {
-        pagesScanned++;
-        scanNextImage();
-      });
+      if (chunk.trim().toLowerCase() === 'n') {
+        onScanned();
+      } else {
+        scanImage(filename + '_' + (pagesScanned + 1), function() {
+          pagesScanned++;
+          scanNextImage();
+        });
+      }
     });
   }
   else {
@@ -96,13 +103,17 @@ function scanNextImage()
 function scanImage(filename, cb)
 {
   console.log('scanning to ' + filename + '.tif');
-  exec('scanimage --mode=' + (color ? 'Color':'Gray') + ' --resolution=' + dpi + ' --format=tiff --device=' + devices[device] + ' > "' + path.join(process.cwd(), filename + '.tif') + '"',
-  function(error, stdout, stderror) {
-    [error, stderror].map(handleError);
 
-    console.log('scanning done');
+  if (device === 'dummy') {
     cb();
-  });
+  } else {
+    exec('scanimage --mode=' + (color ? 'Color':'Gray') + ' --resolution=' + dpi + ' --format=tiff --device=' + devices[device] + ' > "' + path.join(process.cwd(), filename + '.tif') + '"',
+    function(error, stdout, stderror) {
+      [error, stderror].map(handleError);
+      console.log('scanning done');
+      cb();
+    });
+  }
 }
 
 function onScanned(error, stdout, stderror)
@@ -115,7 +126,7 @@ function onScanned(error, stdout, stderror)
 
   if (paperType === 'dark') levels = '20%,70%';
 
-  exec('mogrify -level ' + levels + ' -format jpg ' + filename + ((pages > 1) ? '_*.tif' : '.tif'), onConverted);
+  exec('mogrify -level ' + levels + ' -format jpg ' + filename + ((pagesScanned > 1) ? '_*.tif' : '.tif'), onConverted);
 }
 
 function onConverted(error, stdout, stderror)
@@ -140,7 +151,7 @@ function onTiffsRemoved(error, stdout, stderror)
 function convertToPdf()
 {
   console.log('converting to pdf ...');
-  exec('convert ' + filename + ((pages > 1) ? '_*.jpg' : '.jpg') + ' ' + filename + '.pdf', onConvertedToPdf);
+  exec('convert ' + filename + ((pagesScanned > 1) ? '_*.jpg' : '.jpg') + ' ' + filename + '.pdf', onConvertedToPdf);
 }
 
 function onConvertedToPdf(error, stdout, stderror)
@@ -148,7 +159,7 @@ function onConvertedToPdf(error, stdout, stderror)
   [error, stderror].map(handleError);
 
   console.log('removing jpeg files ...');
-  exec('rm ' + filename + ((pages > 1) ? '_*.jpg' : '.jpg'), onDone);
+  exec('rm ' + filename + ((pagesScanned > 1) ? '_*.jpg' : '.jpg'), onDone);
 }
 
 function onDone(error, stdout, stderror)
