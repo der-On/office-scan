@@ -2,7 +2,7 @@ Usage: office-scan -o [OUTFILE] OPTIONS
 
 OPTIONS:
 
-  -n=number of pages          (default = 1)
+  -n=number of pages          (default = 1) Use "?" if you want to scan an unkown number
   -p --paper=paper type       (default = "white") Can be one of "dark", "white"
   -c --color                  If set a color scan will be done. By default scans are monochrome.
   --dpi=dots per inch         (default = 150)
