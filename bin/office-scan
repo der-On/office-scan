@@ -134,7 +134,7 @@ function onConverted(error, stdout, stderror)
   [error, stderror].map(handleError);
 
   console.log('removing tif files ...');
-  exec('rm ' + filename + ((pages > 1) ? '_*.tif' : '.tif'), onTiffsRemoved);
+  exec('rm ' + filename + ((pagesScanned > 1) ? '_*.tif' : '.tif'), onTiffsRemoved);
 }
 
 function onTiffsRemoved(error, stdout, stderror)
