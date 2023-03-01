@@ -17,6 +17,6 @@
   "author": "Ondrej Brinkel",
   "license": "GPL",
   "dependencies": {
-    "yargs": "~1.1.3"
+    "yargs": "~1.3.3"
   }
 }
