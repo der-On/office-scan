@@ -88,7 +88,7 @@ function scanNextImage()
       if (chunk.trim().toLowerCase() === 'n') {
         onScanned();
       } else {
-        scanImage(filename + '_' + (pagesScanned + 1), function() {
+        scanImage(filename + '_' + (pagesScanned + 1).toString().padStart(2, '0'), function() {
           pagesScanned++;
           scanNextImage();
         });
