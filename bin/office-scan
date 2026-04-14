@@ -107,7 +107,7 @@ function scanImage(filename, cb)
   if (device === 'dummy') {
     cb();
   } else {
-    exec('scanimage --mode=' + (color ? 'Color':'Gray') + ' --resolution=' + dpi + ' --format=tiff --device=' + devices[device] + ' > "' + path.join(process.cwd(), filename + '.tif') + '"',
+    exec('scanimage --mode=' + (color ? 'Color':'Gray') + ' --resolution=' + dpi + ' --format=tiff --device="' + devices[device] + '" > "' + path.join(process.cwd(), filename + '.tif') + '"',
     function(error, stdout, stderror) {
       [error, stderror].map(handleError);
       console.log('scanning done');
